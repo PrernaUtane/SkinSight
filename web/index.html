@@ -1,0 +1,520 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SkinSight — Skin Lesion Classifier</title>
+  <meta name="author" content="Prerna">
+  <meta name="application-name" content="SkinSight">
+  <meta name="description" content="SkinSight by Prerna — educational skin lesion classification with deep learning.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --ink: #14202b;
+      --muted: #5b6b76;
+      --line: #d7e0e6;
+      --paper: #ffffff;
+      --canvas: #eef4f5;
+      --accent: #0b6e74;
+      --accent-2: #14919b;
+      --ok: #2a9d6a;
+      --warn: #d98a16;
+      --bad: #d64545;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: "DM Sans", sans-serif;
+      background: var(--canvas);
+      color: var(--ink);
+      min-height: 100vh;
+    }
+    header {
+      background: linear-gradient(120deg, #094b50, #0b6e74 45%, #3cb8b4);
+      color: #fff;
+      padding: 2.4rem 1.25rem 2rem;
+      text-align: center;
+      border-radius: 0 0 1.4rem 1.4rem;
+    }
+    header h1 { font-size: 2rem; letter-spacing: -0.03em; }
+    header p { opacity: 0.88; margin-top: 0.35rem; }
+    .wrap { max-width: 1080px; margin: 0 auto; padding: 1.5rem; }
+    .panel {
+      background: var(--paper);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 1.4rem;
+      margin-bottom: 1.15rem;
+      box-shadow: 0 8px 28px rgba(20, 32, 43, 0.05);
+    }
+    .panel h2 {
+      font-size: 1.05rem;
+      margin-bottom: 0.9rem;
+    }
+    .chip {
+      display: inline-block;
+      background: var(--accent);
+      color: #fff;
+      border-radius: 999px;
+      padding: 0.28rem 0.8rem;
+      font-size: 0.82rem;
+      font-weight: 600;
+    }
+    #server-state { font-size: 0.82rem; color: var(--muted); margin-left: 0.6rem; }
+    .note { color: var(--accent); font-size: 0.85rem; margin-top: 0.7rem; }
+    .drop {
+      border: 2px dashed var(--line);
+      border-radius: 12px;
+      padding: 2.4rem 1rem;
+      text-align: center;
+      cursor: pointer;
+      background: #f8fbfb;
+    }
+    .drop.is-over { border-color: var(--accent); background: rgba(11, 110, 116, 0.06); }
+    .drop p { color: var(--muted); }
+    .drop .small { font-size: 0.8rem; color: #8a99a3; margin-top: 0.3rem; }
+    #preview { text-align: center; margin: 1rem 0; display: none; }
+    #preview img { max-height: 300px; border-radius: 12px; }
+    .center { text-align: center; margin-top: 1rem; }
+    button {
+      font-family: inherit;
+      border: 0;
+      border-radius: 8px;
+      padding: 0.75rem 1.4rem;
+      background: linear-gradient(135deg, var(--accent), var(--accent-2));
+      color: #fff;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    button:disabled { opacity: 0.45; cursor: not-allowed; }
+    button.ghost {
+      background: transparent;
+      color: var(--accent);
+      border: 1px solid var(--accent);
+      padding: 0.45rem 0.85rem;
+      font-size: 0.85rem;
+    }
+    .alert {
+      display: none;
+      margin-top: 0.8rem;
+      background: #fff4e5;
+      color: #9a4b00;
+      border: 1px solid #ffd8a8;
+      border-radius: 8px;
+      padding: 0.7rem 0.9rem;
+      font-size: 0.88rem;
+    }
+    .busy { display: none; text-align: center; padding: 1.6rem; color: var(--muted); }
+    .spinner {
+      width: 38px; height: 38px; margin: 0 auto 0.8rem;
+      border: 4px solid var(--line);
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    #scores { display: none; margin-top: 1.2rem; }
+    .row { margin-bottom: 0.85rem; }
+    .row-top { display: flex; justify-content: space-between; font-size: 0.92rem; }
+    .pct { font-family: "IBM Plex Mono", monospace; }
+    .track { height: 12px; background: #e7eef0; border-radius: 999px; overflow: hidden; margin-top: 0.3rem; }
+    .fill {
+      height: 100%; width: 0;
+      background: linear-gradient(90deg, var(--accent), var(--accent-2));
+      transition: width 0.7s ease;
+    }
+    .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.9rem; }
+    @media (max-width: 800px) { .grid { grid-template-columns: 1fr; } }
+    .card {
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      overflow: hidden;
+    }
+    .card-head { padding: 0.9rem 1rem 0.6rem; background: #f4fafa; }
+    .card-head h3 { font-size: 1rem; }
+    .card-body { padding: 0.9rem 1rem 1rem; }
+    .badge {
+      display: inline-block;
+      font-size: 0.72rem;
+      font-weight: 600;
+      border-radius: 999px;
+      padding: 0.15rem 0.5rem;
+      margin: 0.25rem 0.2rem 0 0;
+    }
+    .rank { background: #d7f0f1; color: #0b6e74; }
+    .low { background: #d9f5e7; color: #1e7a4d; }
+    .medium { background: #ffeacca; color: #9a5b00; }
+    .high { background: #ffd6d6; color: #a61b1b; }
+    .contagious { background: #ffe0e0; color: #a61b1b; }
+    .pills { display: flex; flex-wrap: wrap; gap: 0.3rem; margin: 0.35rem 0 0.7rem; }
+    .pill { background: #eef3f4; border-radius: 999px; padding: 0.18rem 0.55rem; font-size: 0.78rem; }
+    .doctor { background: #f3fbfb; border-left: 3px solid var(--accent); padding: 0.6rem 0.7rem; font-size: 0.85rem; }
+    .fail { background: #fdecec; color: var(--bad); padding: 0.7rem; border-radius: 8px; font-size: 0.85rem; }
+    .skeleton { height: 160px; background: linear-gradient(90deg, #f0f4f5, #e4ecee, #f0f4f5); background-size: 200% 100%; animation: shine 1.2s infinite; border-radius: 12px; }
+    @keyframes shine { to { background-position: -200% 0; } }
+    #cards-panel, #chat-panel { display: none; }
+    .thread {
+      height: 280px;
+      overflow-y: auto;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: 0.9rem;
+      background: #f8fbfb;
+      margin-bottom: 0.7rem;
+    }
+    .msg { display: flex; margin-bottom: 0.7rem; }
+    .msg.user { justify-content: flex-end; }
+    .bubble {
+      max-width: 75%;
+      padding: 0.7rem 0.9rem;
+      border-radius: 14px;
+      font-size: 0.9rem;
+      line-height: 1.5;
+    }
+    .msg.user .bubble { background: var(--accent); color: #fff; border-bottom-right-radius: 4px; }
+    .msg.bot .bubble { background: #e8eef1; border-bottom-left-radius: 4px; }
+    .composer { display: flex; gap: 0.5rem; }
+    .composer input {
+      flex: 1;
+      border: 1.5px solid var(--line);
+      border-radius: 8px;
+      padding: 0.7rem 0.85rem;
+      font: inherit;
+    }
+    .composer input:focus { outline: none; border-color: var(--accent); }
+    .chat-bar { display: flex; justify-content: space-between; align-items: center; margin-top: 0.6rem; }
+    .dots span {
+      display: inline-block; width: 7px; height: 7px; margin-right: 3px;
+      background: var(--accent); border-radius: 50%;
+      animation: bounce 0.6s infinite alternate;
+    }
+    .dots span:nth-child(2) { animation-delay: 0.15s; }
+    .dots span:nth-child(3) { animation-delay: 0.3s; }
+    @keyframes bounce { to { transform: translateY(-4px); opacity: 0.4; } }
+    footer {
+      text-align: center;
+      color: #8a99a3;
+      font-size: 0.82rem;
+      padding: 1.2rem 1rem 2rem;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>SkinSight</h1>
+    <p>Educational skin lesion classification with deep learning</p>
+    <p>Built by Prerna</p>
+  </header>
+
+  <main class="wrap">
+    <section class="panel">
+      <h2>Setup</h2>
+      <span class="chip">DenseNet121 (Focal Loss v2)</span>
+      <span id="server-state">Checking server…</span>
+      <p class="note">Classification runs on this machine. Disease cards and chat use OpenRouter from the server (the browser never sees the API key).</p>
+    </section>
+
+    <section class="panel">
+      <h2>Upload and classify</h2>
+      <div id="drop" class="drop">
+        <p>Drop a lesion photo here, or click to choose a file</p>
+        <p class="small">JPG, PNG, or WEBP</p>
+        <input id="file" type="file" accept=".jpg,.jpeg,.png,.webp" hidden>
+      </div>
+      <div id="preview"><img id="preview-img" alt="Selected lesion"></div>
+      <div class="center">
+        <button id="run" disabled>Analyze image</button>
+      </div>
+      <div id="alert" class="alert"></div>
+      <div id="busy" class="busy">
+        <div class="spinner"></div>
+        <p>Running the local classifier…</p>
+        <p class="small">The first request after startup can take longer while weights finish loading.</p>
+      </div>
+      <div id="scores"></div>
+    </section>
+
+    <section id="cards-panel" class="panel">
+      <h2>Condition information</h2>
+      <div id="skeletons" class="grid">
+        <div class="skeleton"></div>
+        <div class="skeleton"></div>
+        <div class="skeleton"></div>
+      </div>
+      <div id="cards" class="grid"></div>
+    </section>
+
+    <section id="chat-panel" class="panel">
+      <h2>Questions about these results</h2>
+      <div id="thread" class="thread">
+        <div class="msg bot"><div class="bubble">Ask about the three predicted conditions. This is educational information only — it is not a diagnosis.</div></div>
+      </div>
+      <div class="composer">
+        <input id="chat-text" type="text" placeholder="Ask a question…">
+        <button id="send" type="button">Send</button>
+      </div>
+      <div class="chat-bar">
+        <button id="reset" class="ghost" type="button">Clear conversation</button>
+        <span class="small">Answers are generated by an LLM through the local server</span>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    SkinSight by Prerna. This prototype is for education and research. It is not medical advice and must not replace a clinician.
+  </footer>
+
+  <script>
+    (() => {
+      const apiRoot = window.location.origin;
+      const $ = (id) => document.getElementById(id);
+
+      let selectedFile = null;
+      let topThree = [];
+      let history = [];
+
+      const drop = $("drop");
+      const fileInput = $("file");
+      const preview = $("preview");
+      const previewImg = $("preview-img");
+      const runBtn = $("run");
+      const alertBox = $("alert");
+      const busy = $("busy");
+      const scores = $("scores");
+      const cardsPanel = $("cards-panel");
+      const skeletons = $("skeletons");
+      const cards = $("cards");
+      const chatPanel = $("chat-panel");
+      const thread = $("thread");
+      const chatText = $("chat-text");
+
+      function showAlert(text) {
+        alertBox.textContent = text;
+        alertBox.style.display = "block";
+      }
+      function hideAlert() { alertBox.style.display = "none"; }
+      function formatDetail(detail) {
+        if (!detail) return "";
+        if (typeof detail === "string") return detail;
+        if (Array.isArray(detail)) return detail.map((item) => item.msg || JSON.stringify(item)).join(" ");
+        return String(detail);
+      }
+
+      fetch(`${apiRoot}/api/status`)
+        .then((res) => res.json())
+        .then((data) => {
+          const el = $("server-state");
+          const llmNote = data.llm_configured ? "OpenRouter key found" : "OpenRouter key missing";
+          el.textContent = data.status === "ready"
+            ? `Server ready — ${data.model} · ${data.device} · ${llmNote}`
+            : `Server status: ${data.status}`;
+          el.style.color = data.status === "ready" ? "var(--ok)" : "var(--warn)";
+        })
+        .catch(() => {
+          const el = $("server-state");
+          el.textContent = "Server offline. From the project folder run: python run.py";
+          el.style.color = "var(--bad)";
+        });
+
+      drop.addEventListener("click", () => fileInput.click());
+      drop.addEventListener("dragover", (event) => {
+        event.preventDefault();
+        drop.classList.add("is-over");
+      });
+      drop.addEventListener("dragleave", () => drop.classList.remove("is-over"));
+      drop.addEventListener("drop", (event) => {
+        event.preventDefault();
+        drop.classList.remove("is-over");
+        takeFile(event.dataTransfer.files[0]);
+      });
+      fileInput.addEventListener("change", (event) => takeFile(event.target.files[0]));
+
+      function takeFile(file) {
+        if (!file) return;
+        const ok = ["image/jpeg", "image/png", "image/webp"];
+        if (!ok.includes(file.type)) {
+          showAlert("Please upload a JPG, PNG, or WEBP image.");
+          return;
+        }
+        hideAlert();
+        selectedFile = file;
+        const reader = new FileReader();
+        reader.onload = (event) => {
+          previewImg.src = event.target.result;
+          preview.style.display = "block";
+          runBtn.disabled = false;
+        };
+        reader.readAsDataURL(file);
+      }
+
+      runBtn.addEventListener("click", async () => {
+        if (!selectedFile) {
+          showAlert("Choose an image first.");
+          return;
+        }
+        hideAlert();
+        runBtn.disabled = true;
+        busy.style.display = "block";
+        scores.style.display = "none";
+        cardsPanel.style.display = "none";
+        chatPanel.style.display = "none";
+
+        try {
+          const form = new FormData();
+          form.append("image", selectedFile);
+          const res = await fetch(`${apiRoot}/api/classify`, { method: "POST", body: form });
+          const data = await res.json().catch(() => ({}));
+          if (!res.ok) throw new Error(formatDetail(data.detail) || `HTTP ${res.status}`);
+          if (!data.predictions || !data.predictions.length) {
+            throw new Error("The model returned no predictions.");
+          }
+          topThree = data.predictions.slice(0, 3);
+          drawScores(topThree);
+          busy.style.display = "none";
+          scores.style.display = "block";
+          await loadCards(topThree);
+          startChat();
+        } catch (error) {
+          busy.style.display = "none";
+          showAlert(error.message || "Connection error. Check that the server is running.");
+        } finally {
+          runBtn.disabled = false;
+        }
+      });
+
+      function drawScores(preds) {
+        scores.innerHTML = "<h2>Top predictions</h2>";
+        preds.forEach((item, index) => {
+          const pct = (item.score * 100).toFixed(1);
+          scores.innerHTML += `
+            <div class="row">
+              <div class="row-top"><span>#${index + 1} ${item.label}</span><span class="pct">${pct}%</span></div>
+              <div class="track"><div class="fill" data-width="${pct}%"></div></div>
+            </div>`;
+        });
+        requestAnimationFrame(() => {
+          scores.querySelectorAll(".fill").forEach((bar) => { bar.style.width = bar.dataset.width; });
+        });
+      }
+
+      async function loadCards(preds) {
+        cardsPanel.style.display = "block";
+        skeletons.style.display = "grid";
+        cards.innerHTML = "";
+        const settled = await Promise.allSettled(preds.map(fetchCard));
+        skeletons.style.display = "none";
+        settled.forEach((result, index) => {
+          if (result.status === "fulfilled") {
+            cards.insertAdjacentHTML("beforeend", cardHtml(result.value, preds[index], index));
+          } else {
+            const reason = result.reason?.message || "Could not load this card.";
+            cards.insertAdjacentHTML("beforeend", `
+              <article class="card">
+                <div class="card-head"><h3>${preds[index].label}</h3></div>
+                <div class="card-body"><div class="fail">${reason}</div></div>
+              </article>`);
+          }
+        });
+      }
+
+      async function fetchCard(pred) {
+        const res = await fetch(`${apiRoot}/api/card`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ label: pred.label, confidence: pred.score * 100 }),
+        });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) throw new Error(formatDetail(data.detail) || `HTTP ${res.status}`);
+        return data;
+      }
+
+      function pillList(values) {
+        return (values || []).map((item) => `<span class="pill">${item}</span>`).join("");
+      }
+
+      function cardHtml(info, pred, index) {
+        const severity = info.severity || "Medium";
+        const sevClass = severity === "High" ? "high" : severity === "Low" ? "low" : "medium";
+        const pct = (pred.score * 100).toFixed(1);
+        const contagious = info.is_contagious ? '<span class="badge contagious">Contagious</span>' : "";
+        return `
+          <article class="card">
+            <div class="card-head">
+              <h3>${info.disease || pred.label}</h3>
+              <span class="badge rank">#${index + 1} · ${pct}%</span>
+              <span class="badge ${sevClass}">${severity} severity</span>
+              ${contagious}
+            </div>
+            <div class="card-body">
+              <p>${info.overview || ""}</p>
+              <p><strong>Symptoms</strong></p><div class="pills">${pillList(info.symptoms)}</div>
+              <p><strong>Causes</strong></p><div class="pills">${pillList(info.causes)}</div>
+              <p><strong>Risk factors</strong></p><div class="pills">${pillList(info.risk_factors)}</div>
+              <p><strong>Precautions</strong></p><div class="pills">${pillList(info.precautions)}</div>
+              <div class="doctor"><strong>When to see a doctor:</strong> ${info.when_to_see_doctor || ""}</div>
+            </div>
+          </article>`;
+      }
+
+      function systemPrompt() {
+        const listed = topThree.map((item) => `${item.label} (${(item.score * 100).toFixed(1)}%)`).join(", ");
+        return `You are a dermatology education assistant. A classifier ranked these conditions: ${listed}. Answer clearly and briefly. Always tell the user to consult a clinician for diagnosis. Do not claim to diagnose.`;
+      }
+
+      function startChat() {
+        history = [];
+        chatPanel.style.display = "block";
+        thread.innerHTML = '<div class="msg bot"><div class="bubble">Ask about the three predicted conditions. This is educational information only — it is not a diagnosis.</div></div>';
+      }
+
+      function addMessage(role, text) {
+        const css = role === "user" ? "user" : "bot";
+        const div = document.createElement("div");
+        div.className = `msg ${css}`;
+        div.innerHTML = `<div class="bubble">${String(text).replace(/\n/g, "<br>")}</div>`;
+        thread.appendChild(div);
+        thread.scrollTop = thread.scrollHeight;
+      }
+
+      async function sendChat() {
+        const text = chatText.value.trim();
+        if (!text) return;
+        chatText.value = "";
+        addMessage("user", text);
+        history.push({ role: "user", content: text });
+        const typing = document.createElement("div");
+        typing.id = "typing";
+        typing.className = "msg bot";
+        typing.innerHTML = '<div class="bubble dots"><span></span><span></span><span></span></div>';
+        thread.appendChild(typing);
+
+        try {
+          const res = await fetch(`${apiRoot}/api/chat`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ system_prompt: systemPrompt(), history }),
+          });
+          typing.remove();
+          const data = await res.json().catch(() => ({}));
+          if (!res.ok) {
+            addMessage("bot", formatDetail(data.detail) || `Error HTTP ${res.status}`);
+            return;
+          }
+          const reply = data.reply || "No reply was generated.";
+          history.push({ role: "assistant", content: reply });
+          addMessage("bot", reply);
+        } catch (_error) {
+          typing.remove();
+          addMessage("bot", "Connection error. Confirm that python run.py is still running.");
+        }
+      }
+
+      $("send").addEventListener("click", sendChat);
+      chatText.addEventListener("keydown", (event) => {
+        if (event.key === "Enter") sendChat();
+      });
+      $("reset").addEventListener("click", startChat);
+    })();
+  </script>
+</body>
+</html>

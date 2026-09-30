@@ -1,0 +1,44 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+*.egg-info/
+dist/
+build/
+.eggs/
+
+# Virtual environments
+venv/
+.venv/
+env/
+
+# Secrets
+.env
+
+# Editors / OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Downloaded model weights
+*.bin
+*.safetensors
+*.pt
+*.pth
+huggingface/
+.cache/
+
+# Notebook / eval artifacts
+.ipynb_checkpoints/
+results/*.csv
+results/*.png
+results/*.json
+
+# Hugging Face / datasets caches
+.huggingface/
+~/.cache/
+
+hf_model/

@@ -1,0 +1,1 @@
+"""SkinSight application package."""
