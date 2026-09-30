@@ -15,7 +15,6 @@ env/
 
 # Secrets
 .env
-.env.local
 
 # Editors / OS
 .vscode/
@@ -31,7 +30,6 @@ desktop.ini
 *.pth
 huggingface/
 .cache/
-model.safetensors
 
 # Notebook / eval artifacts
 .ipynb_checkpoints/
@@ -44,3 +42,12 @@ results/*.json
 ~/.cache/
 
 hf_model/
+
+# Git
+.git/
+.gitignore
+
+# Documentation (keep in repo, not needed in image)
+README.md
+DEPLOYMENT.md
+INTERVIEW_PREPARATION.md

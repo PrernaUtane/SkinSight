@@ -3,265 +3,1250 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>SkinSight — Skin Lesion Classifier</title>
+  <title>SkinSight — AI-Powered Skin Lesion Analysis</title>
   <meta name="author" content="Prerna">
   <meta name="application-name" content="SkinSight">
   <meta name="description" content="SkinSight by Prerna — educational skin lesion classification with deep learning.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔬</text></svg>">
   <style>
     :root {
-      --ink: #14202b;
-      --muted: #5b6b76;
-      --line: #d7e0e6;
-      --paper: #ffffff;
-      --canvas: #eef4f5;
-      --accent: #0b6e74;
-      --accent-2: #14919b;
-      --ok: #2a9d6a;
-      --warn: #d98a16;
-      --bad: #d64545;
+      --primary: #0f172a;
+      --primary-dark: #1e293b;
+      --primary-light: #334155;
+      --accent: #06b6d4;
+      --accent-light: #22d3ee;
+      --accent-dark: #0891b2;
+      --bg: #ffffff;
+      --bg-subtle: #f8fafc;
+      --bg-glass: rgba(255, 255, 255, 0.7);
+      --text: #0f172a;
+      --text-muted: #64748b;
+      --text-light: #94a3b8;
+      --border: #e2e8f0;
+      --border-light: #f1f5f9;
+      --success: #10b981;
+      --warning: #f59e0b;
+      --error: #ef4444;
+      --shadow-sm: 0 1px 2px rgba(0,0,0,0.05);
+      --shadow: 0 2px 4px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.04);
+      --shadow-md: 0 4px 6px rgba(0,0,0,0.1), 0 2px 4px rgba(0,0,0,0.06);
+      --shadow-lg: 0 10px 15px rgba(0,0,0,0.1), 0 4px 6px rgba(0,0,0,0.05);
+      --shadow-xl: 0 20px 25px rgba(0,0,0,0.1), 0 10px 10px rgba(0,0,0,0.04);
     }
     * { box-sizing: border-box; margin: 0; padding: 0; }
+    html {
+      scroll-behavior: smooth;
+    }
     body {
-      font-family: "DM Sans", sans-serif;
-      background: var(--canvas);
-      color: var(--ink);
+      font-family: "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
+      background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+      color: var(--text);
       min-height: 100vh;
+      line-height: 1.6;
     }
-    header {
-      background: linear-gradient(120deg, #094b50, #0b6e74 45%, #3cb8b4);
+    
+    /* Sticky Navigation */
+    .nav-sticky {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: var(--bg-glass);
+      backdrop-filter: blur(20px);
+      border-bottom: 1px solid var(--border);
+      padding: 0.75rem 0;
+    }
+    .nav-content {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 1.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .nav-brand {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      font-weight: 700;
+      font-size: 1.1rem;
+      color: var(--primary);
+    }
+    .nav-brand-icon {
+      width: 32px;
+      height: 32px;
+      background: linear-gradient(135deg, var(--accent), var(--accent-light));
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
       color: #fff;
-      padding: 2.4rem 1.25rem 2rem;
-      text-align: center;
-      border-radius: 0 0 1.4rem 1.4rem;
+      font-size: 0.9rem;
     }
-    header h1 { font-size: 2rem; letter-spacing: -0.03em; }
-    header p { opacity: 0.88; margin-top: 0.35rem; }
-    .wrap { max-width: 1080px; margin: 0 auto; padding: 1.5rem; }
-    .panel {
-      background: var(--paper);
-      border: 1px solid var(--line);
-      border-radius: 12px;
-      padding: 1.4rem;
-      margin-bottom: 1.15rem;
-      box-shadow: 0 8px 28px rgba(20, 32, 43, 0.05);
+    .nav-links {
+      display: flex;
+      gap: 2rem;
     }
-    .panel h2 {
+    .nav-link {
+      color: var(--text-muted);
+      text-decoration: none;
+      font-size: 0.9rem;
+      font-weight: 500;
+      transition: color 0.2s ease;
+    }
+    .nav-link:hover {
+      color: var(--accent);
+    }
+    
+    /* Hero Header */
+    .hero-header {
+      background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 40%, #0c4a6e 100%);
+      color: #fff;
+      padding: 5rem 1.5rem 6rem;
+      position: relative;
+      overflow: hidden;
+    }
+    .hero-header::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: 
+        radial-gradient(circle at 15% 85%, rgba(6, 182, 212, 0.2) 0%, transparent 45%),
+        radial-gradient(circle at 85% 15%, rgba(34, 211, 238, 0.15) 0%, transparent 45%),
+        radial-gradient(circle at 50% 50%, rgba(6, 182, 212, 0.08) 0%, transparent 55%);
+      pointer-events: none;
+    }
+    .hero-header::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 2px;
+      background: linear-gradient(90deg, transparent, rgba(6, 182, 212, 0.5), transparent);
+    }
+    .hero-content {
+      max-width: 1200px;
+      margin: 0 auto;
+      position: relative;
+      z-index: 1;
+    }
+    .hero-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 3rem;
+    }
+    .hero-logo {
+      display: flex;
+      align-items: center;
+      gap: 1.25rem;
+    }
+    .hero-logo-mark {
+      width: 56px;
+      height: 56px;
+      background: linear-gradient(135deg, var(--accent), var(--accent-light));
+      border-radius: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 1.6rem;
+      box-shadow: 0 8px 24px rgba(6, 182, 212, 0.4);
+    }
+    .hero-logo-text h1 {
+      font-size: 2rem;
+      font-weight: 700;
+      letter-spacing: -0.03em;
+      margin: 0;
+      line-height: 1.1;
+    }
+    .hero-logo-text span {
+      font-size: 0.95rem;
+      color: rgba(255,255,255,0.75);
+      font-weight: 500;
+      display: block;
+      margin-top: 0.35rem;
+    }
+    .hero-status {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+    .hero-badge {
+      background: rgba(255,255,255,0.12);
+      color: #fff;
+      padding: 0.5rem 1.25rem;
+      border-radius: 999px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      border: 1px solid rgba(255,255,255,0.2);
+      backdrop-filter: blur(10px);
+    }
+    .hero-indicator {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      font-size: 0.9rem;
+      color: rgba(255,255,255,0.9);
+    }
+    .hero-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: var(--success);
+      box-shadow: 0 0 12px rgba(16, 185, 129, 0.6);
+    }
+    .hero-dot.loading {
+      background: var(--warning);
+      animation: pulse 1.5s infinite;
+    }
+    .hero-dot.error {
+      background: var(--error);
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
+    }
+    .hero-main {
+      max-width: 700px;
+    }
+    .hero-main h2 {
+      font-size: 2.75rem;
+      font-weight: 700;
+      letter-spacing: -0.04em;
+      margin-bottom: 1.5rem;
+      line-height: 1.1;
+    }
+    .hero-main p {
+      font-size: 1.2rem;
+      color: rgba(255,255,255,0.9);
+      line-height: 1.75;
+      margin-bottom: 2.5rem;
+    }
+    .hero-features {
+      display: flex;
+      gap: 2rem;
+      flex-wrap: wrap;
+    }
+    .hero-feature {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      color: rgba(255,255,255,0.8);
+      font-size: 0.9rem;
+    }
+    .hero-feature-icon {
+      width: 24px;
+      height: 24px;
+      background: rgba(6, 182, 212, 0.2);
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.85rem;
+    }
+    
+    /* Layout */
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 3.5rem 1.5rem;
+    }
+    
+    /* Sections */
+    .section-header {
+      margin-bottom: 2.5rem;
+    }
+    .section-header h3 {
+      font-size: 1.85rem;
+      font-weight: 700;
+      color: var(--primary);
+      margin-bottom: 0.6rem;
+      letter-spacing: -0.02em;
+    }
+    .section-header p {
+      color: var(--text-muted);
       font-size: 1.05rem;
-      margin-bottom: 0.9rem;
     }
-    .chip {
-      display: inline-block;
-      background: var(--accent);
+    
+    /* Cards */
+    .card {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 2rem;
+      box-shadow: var(--shadow);
+      transition: all 0.3s ease;
+    }
+    .card:hover {
+      box-shadow: var(--shadow-lg);
+      transform: translateY(-2px);
+    }
+    
+    /* Status Panel */
+    .status-panel {
+      background: linear-gradient(135deg, var(--bg), var(--bg-subtle));
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 1.75rem 2rem;
+      margin-bottom: 2.5rem;
+      box-shadow: var(--shadow);
+    }
+    .status-panel-content {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 1rem;
+    }
+    .status-model {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+    .status-model-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      background: linear-gradient(135deg, var(--primary), var(--primary-light));
       color: #fff;
       border-radius: 999px;
-      padding: 0.28rem 0.8rem;
-      font-size: 0.82rem;
+      padding: 0.5rem 1rem;
+      font-size: 0.85rem;
       font-weight: 600;
     }
-    #server-state { font-size: 0.82rem; color: var(--muted); margin-left: 0.6rem; }
-    .note { color: var(--accent); font-size: 0.85rem; margin-top: 0.7rem; }
-    .drop {
-      border: 2px dashed var(--line);
-      border-radius: 12px;
-      padding: 2.4rem 1rem;
-      text-align: center;
-      cursor: pointer;
-      background: #f8fbfb;
+    .status-model-chip-dot {
+      width: 6px;
+      height: 6px;
+      background: rgba(255,255,255,0.7);
+      border-radius: 50%;
     }
-    .drop.is-over { border-color: var(--accent); background: rgba(11, 110, 116, 0.06); }
-    .drop p { color: var(--muted); }
-    .drop .small { font-size: 0.8rem; color: #8a99a3; margin-top: 0.3rem; }
-    #preview { text-align: center; margin: 1rem 0; display: none; }
-    #preview img { max-height: 300px; border-radius: 12px; }
-    .center { text-align: center; margin-top: 1rem; }
-    button {
-      font-family: inherit;
-      border: 0;
+    #server-state { 
+      font-size: 0.9rem; 
+      color: var(--text-muted); 
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    #server-state::before {
+      content: '';
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--text-muted);
+    }
+    #server-state.ready::before { background: var(--success); }
+    #server-state.warn::before { background: var(--warning); }
+    #server-state.error::before { background: var(--error); }
+    .status-note { 
+      color: var(--text-muted); 
+      font-size: 0.9rem; 
+      line-height: 1.6;
+    }
+    
+    /* Upload Card */
+    .upload-card {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 24px;
+      padding: 2.5rem;
+      box-shadow: var(--shadow-md);
+      margin-bottom: 2.5rem;
+    }
+    .upload-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 2.5rem;
+      align-items: start;
+    }
+    .upload-info h3 {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: var(--primary);
+      margin-bottom: 0.75rem;
+    }
+    .upload-info p {
+      color: var(--text-muted);
+      font-size: 1rem;
+      line-height: 1.7;
+      margin-bottom: 1.5rem;
+    }
+    .upload-steps {
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+    .upload-step {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      color: var(--text-muted);
+      font-size: 0.9rem;
+    }
+    .upload-step-number {
+      width: 28px;
+      height: 28px;
+      background: linear-gradient(135deg, var(--accent), var(--accent-light));
       border-radius: 8px;
-      padding: 0.75rem 1.4rem;
-      background: linear-gradient(135deg, var(--accent), var(--accent-2));
+      display: flex;
+      align-items: center;
+      justify-content: center;
       color: #fff;
       font-weight: 600;
-      cursor: pointer;
+      font-size: 0.8rem;
     }
-    button:disabled { opacity: 0.45; cursor: not-allowed; }
-    button.ghost {
+    .upload-zone {
+      border: 2px dashed var(--border);
+      border-radius: 24px;
+      padding: 3.5rem 2rem;
+      text-align: center;
+      cursor: pointer;
+      background: linear-gradient(135deg, var(--bg-subtle), var(--bg));
+      transition: all 0.3s ease;
+      position: relative;
+    }
+    .upload-zone:hover {
+      border-color: var(--accent);
+      background: linear-gradient(135deg, rgba(6, 182, 212, 0.06), rgba(6, 182, 212, 0.02));
+      box-shadow: 0 8px 24px rgba(6, 182, 212, 0.15);
+    }
+    .upload-zone.is-over { 
+      border-color: var(--accent);
+      background: linear-gradient(135deg, rgba(6, 182, 212, 0.12), rgba(6, 182, 212, 0.05));
+      transform: scale(1.02);
+      box-shadow: 0 12px 32px rgba(6, 182, 212, 0.25);
+    }
+    .upload-zone-icon {
+      width: 88px;
+      height: 88px;
+      margin: 0 auto 1.75rem;
+      background: linear-gradient(135deg, var(--accent), var(--accent-light));
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 2.5rem;
+      box-shadow: 0 12px 32px rgba(6, 182, 212, 0.35);
+    }
+    .upload-zone h4 {
+      font-size: 1.25rem;
+      font-weight: 600;
+      color: var(--text);
+      margin-bottom: 0.5rem;
+    }
+    .upload-zone p {
+      color: var(--text-muted);
+      font-size: 0.95rem;
+      margin-bottom: 0.75rem;
+    }
+    .upload-zone .formats {
+      font-size: 0.85rem;
+      color: var(--text-light);
+    }
+    #preview { 
+      display: none;
+      margin: 1.5rem 0;
+    }
+    #preview img { 
+      max-height: 350px;
+      max-width: 100%;
+      border-radius: 16px;
+      box-shadow: var(--shadow-md);
+    }
+    .upload-actions {
+      margin-top: 1.5rem;
+      display: flex;
+      gap: 1rem;
+      justify-content: center;
+    }
+    .btn-primary {
+      font-family: inherit;
+      border: 0;
+      border-radius: 14px;
+      padding: 1.1rem 2.5rem;
+      background: linear-gradient(135deg, var(--accent), var(--accent-dark));
+      color: #fff;
+      font-weight: 600;
+      font-size: 1.05rem;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      box-shadow: 0 6px 20px rgba(6, 182, 212, 0.4);
+    }
+    .btn-primary:hover:not(:disabled) {
+      transform: translateY(-3px);
+      box-shadow: 0 8px 28px rgba(6, 182, 212, 0.5);
+    }
+    .btn-primary:active:not(:disabled) {
+      transform: translateY(-1px);
+    }
+    .btn-primary:disabled { 
+      opacity: 0.5; 
+      cursor: not-allowed;
+      box-shadow: none;
+    }
+    .btn-ghost {
       background: transparent;
       color: var(--accent);
-      border: 1px solid var(--accent);
-      padding: 0.45rem 0.85rem;
-      font-size: 0.85rem;
+      border: 1.5px solid var(--accent);
+      padding: 0.75rem 1.5rem;
+      font-size: 0.9rem;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      font-weight: 500;
+    }
+    .btn-ghost:hover {
+      background: rgba(6, 182, 212, 0.08);
     }
     .alert {
       display: none;
-      margin-top: 0.8rem;
-      background: #fff4e5;
-      color: #9a4b00;
-      border: 1px solid #ffd8a8;
-      border-radius: 8px;
-      padding: 0.7rem 0.9rem;
-      font-size: 0.88rem;
+      margin-top: 1.5rem;
+      background: #fff7ed;
+      color: #c2410c;
+      border: 1px solid #fed7aa;
+      border-radius: 12px;
+      padding: 1rem 1.25rem;
+      font-size: 0.95rem;
     }
-    .busy { display: none; text-align: center; padding: 1.6rem; color: var(--muted); }
+    .loading-state { 
+      display: none; 
+      text-align: center; 
+      padding: 3rem; 
+      color: var(--text-muted);
+    }
     .spinner {
-      width: 38px; height: 38px; margin: 0 auto 0.8rem;
-      border: 4px solid var(--line);
+      width: 56px; 
+      height: 56px; 
+      margin: 0 auto 1.5rem;
+      border: 4px solid var(--border);
       border-top-color: var(--accent);
       border-radius: 50%;
-      animation: spin 0.7s linear infinite;
+      animation: spin 0.8s linear infinite;
     }
     @keyframes spin { to { transform: rotate(360deg); } }
-    #scores { display: none; margin-top: 1.2rem; }
-    .row { margin-bottom: 0.85rem; }
-    .row-top { display: flex; justify-content: space-between; font-size: 0.92rem; }
-    .pct { font-family: "IBM Plex Mono", monospace; }
-    .track { height: 12px; background: #e7eef0; border-radius: 999px; overflow: hidden; margin-top: 0.3rem; }
-    .fill {
-      height: 100%; width: 0;
-      background: linear-gradient(90deg, var(--accent), var(--accent-2));
-      transition: width 0.7s ease;
+    
+    /* Results Section */
+    #results-section { display: none; margin-top: 2.5rem; }
+    .results-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 2rem;
     }
-    .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.9rem; }
-    @media (max-width: 800px) { .grid { grid-template-columns: 1fr; } }
-    .card {
-      border: 1px solid var(--line);
+    .results-preview {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 1.5rem;
+      box-shadow: var(--shadow);
+    }
+    .results-preview img {
+      width: 100%;
+      border-radius: 16px;
+      box-shadow: var(--shadow-sm);
+    }
+    .results-preview-label {
+      text-align: center;
+      margin-top: 1rem;
+      color: var(--text-muted);
+      font-size: 0.9rem;
+      font-weight: 500;
+    }
+    .results-predictions {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 2rem;
+      box-shadow: var(--shadow);
+    }
+    .results-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 1.5rem;
+      padding-bottom: 1rem;
+      border-bottom: 1px solid var(--border-light);
+    }
+    .results-header h3 {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: var(--primary);
+      margin: 0;
+    }
+    .disclaimer-banner {
+      background: linear-gradient(135deg, #fef3c7, #fde68a);
+      border: 1px solid #fcd34d;
       border-radius: 12px;
+      padding: 1rem 1.25rem;
+      margin-bottom: 2rem;
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+    .disclaimer-banner-icon {
+      font-size: 1.5rem;
+    }
+    .disclaimer-banner p {
+      color: #92400e;
+      font-size: 0.9rem;
+      font-weight: 500;
+      margin: 0;
+    }
+    .prediction-item {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      padding: 1.75rem;
+      margin-bottom: 1.25rem;
+      transition: all 0.3s ease;
+    }
+    .prediction-item:hover {
+      border-color: var(--accent);
+      box-shadow: var(--shadow-lg);
+      transform: translateY(-2px);
+    }
+    .prediction-item.top {
+      background: linear-gradient(135deg, rgba(6, 182, 212, 0.12), rgba(6, 182, 212, 0.04));
+      border-color: var(--accent);
+      border-width: 2px;
+      box-shadow: 0 8px 24px rgba(6, 182, 212, 0.15);
+    }
+    .prediction-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1rem;
+    }
+    .prediction-label {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+    .rank-badge {
+      background: var(--primary);
+      color: #fff;
+      padding: 0.3rem 0.85rem;
+      border-radius: 999px;
+      font-size: 0.75rem;
+      font-weight: 700;
+    }
+    .rank-badge.top {
+      background: linear-gradient(135deg, var(--accent), var(--accent-dark));
+    }
+    .condition-name {
+      font-weight: 600;
+      font-size: 1.1rem;
+      color: var(--text);
+    }
+    .confidence {
+      font-family: "JetBrains Mono", monospace;
+      font-weight: 700;
+      font-size: 1.5rem;
+      color: var(--accent);
+    }
+    .confidence-bar {
+      height: 14px;
+      background: var(--border-light);
+      border-radius: 999px;
       overflow: hidden;
     }
-    .card-head { padding: 0.9rem 1rem 0.6rem; background: #f4fafa; }
-    .card-head h3 { font-size: 1rem; }
-    .card-body { padding: 0.9rem 1rem 1rem; }
+    .confidence-fill {
+      height: 100%;
+      width: 0;
+      background: linear-gradient(90deg, var(--accent), var(--accent-light));
+      border-radius: 999px;
+      transition: width 0.8s ease;
+    }
+    
+    /* Educational Cards */
+    #cards-section { display: none; margin-top: 2.5rem; }
+    .cards-grid { 
+      display: grid; 
+      grid-template-columns: repeat(3, 1fr); 
+      gap: 1.75rem;
+    }
+    @media (max-width: 1024px) { .cards-grid { grid-template-columns: repeat(2, 1fr); } }
+    @media (max-width: 640px) { .cards-grid { grid-template-columns: 1fr; } }
+    .info-card {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      overflow: hidden;
+      transition: all 0.3s ease;
+    }
+    .info-card:hover {
+      box-shadow: var(--shadow-lg);
+      transform: translateY(-4px);
+    }
+    .info-card-header {
+      padding: 1.75rem;
+      background: linear-gradient(135deg, var(--bg-subtle), var(--border-light));
+      border-bottom: 1px solid var(--border-light);
+    }
+    .info-card-header h4 {
+      font-size: 1.15rem;
+      font-weight: 600;
+      color: var(--primary);
+      margin: 0 0 0.75rem 0;
+    }
+    .card-badges {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+    }
     .badge {
       display: inline-block;
-      font-size: 0.72rem;
+      font-size: 0.75rem;
       font-weight: 600;
       border-radius: 999px;
-      padding: 0.15rem 0.5rem;
-      margin: 0.25rem 0.2rem 0 0;
+      padding: 0.3rem 0.85rem;
     }
-    .rank { background: #d7f0f1; color: #0b6e74; }
-    .low { background: #d9f5e7; color: #1e7a4d; }
-    .medium { background: #ffeacca; color: #9a5b00; }
-    .high { background: #ffd6d6; color: #a61b1b; }
-    .contagious { background: #ffe0e0; color: #a61b1b; }
-    .pills { display: flex; flex-wrap: wrap; gap: 0.3rem; margin: 0.35rem 0 0.7rem; }
-    .pill { background: #eef3f4; border-radius: 999px; padding: 0.18rem 0.55rem; font-size: 0.78rem; }
-    .doctor { background: #f3fbfb; border-left: 3px solid var(--accent); padding: 0.6rem 0.7rem; font-size: 0.85rem; }
-    .fail { background: #fdecec; color: var(--bad); padding: 0.7rem; border-radius: 8px; font-size: 0.85rem; }
-    .skeleton { height: 160px; background: linear-gradient(90deg, #f0f4f5, #e4ecee, #f0f4f5); background-size: 200% 100%; animation: shine 1.2s infinite; border-radius: 12px; }
-    @keyframes shine { to { background-position: -200% 0; } }
-    #cards-panel, #chat-panel { display: none; }
-    .thread {
-      height: 280px;
-      overflow-y: auto;
-      border: 1px solid var(--line);
-      border-radius: 10px;
-      padding: 0.9rem;
-      background: #f8fbfb;
-      margin-bottom: 0.7rem;
+    .badge-rank { background: #e0f2fe; color: #0369a1; }
+    .badge-low { background: #dcfce7; color: #15803d; }
+    .badge-medium { background: #fef3c7; color: #b45309; }
+    .badge-high { background: #fee2e2; color: #b91c1c; }
+    .badge-contagious { background: #fee2e2; color: #b91c1c; }
+    .info-card-body { 
+      padding: 1.75rem; 
     }
-    .msg { display: flex; margin-bottom: 0.7rem; }
-    .msg.user { justify-content: flex-end; }
-    .bubble {
-      max-width: 75%;
-      padding: 0.7rem 0.9rem;
-      border-radius: 14px;
+    .info-section {
+      margin-bottom: 1.5rem;
+    }
+    .info-section:last-child {
+      margin-bottom: 0;
+    }
+    .info-section h5 {
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--primary);
+      margin: 0 0 0.6rem 0;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+    .info-section p {
       font-size: 0.9rem;
-      line-height: 1.5;
+      color: var(--text-muted);
+      line-height: 1.7;
+      margin: 0;
     }
-    .msg.user .bubble { background: var(--accent); color: #fff; border-bottom-right-radius: 4px; }
-    .msg.bot .bubble { background: #e8eef1; border-bottom-left-radius: 4px; }
-    .composer { display: flex; gap: 0.5rem; }
-    .composer input {
+    .tag-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+    }
+    .tag {
+      background: var(--bg-subtle);
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      padding: 0.35rem 0.85rem;
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      font-weight: 500;
+    }
+    .doctor-alert {
+      background: linear-gradient(135deg, #f0f9ff, #e0f2fe);
+      border-left: 4px solid var(--accent);
+      padding: 1.25rem;
+      border-radius: 0 16px 16px 0;
+      margin-top: 1.25rem;
+    }
+    .doctor-alert h5 {
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--primary);
+      margin: 0 0 0.5rem 0;
+    }
+    .doctor-alert p {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      margin: 0;
+      line-height: 1.6;
+    }
+    .card-error {
+      background: #fef2f2;
+      color: var(--error);
+      padding: 1.25rem;
+      border-radius: 16px;
+      font-size: 0.9rem;
+    }
+    .skeleton-card {
+      height: 320px;
+      background: linear-gradient(90deg, var(--bg-subtle), var(--border-light), var(--bg-subtle));
+      background-size: 200% 100%;
+      animation: shine 1.5s infinite;
+      border-radius: 20px;
+    }
+    @keyframes shine { to { background-position: -200% 0; } }
+    
+    /* Chat Section */
+    #chat-section { display: none; margin-top: 2.5rem; }
+    .chat-card {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 24px;
+      overflow: hidden;
+      box-shadow: var(--shadow-xl);
+    }
+    .chat-header {
+      padding: 1.75rem 2rem;
+      background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .chat-header h3 {
+      font-size: 1.35rem;
+      font-weight: 600;
+      margin: 0;
+      display: flex;
+      align-items: center;
+      gap: 0.85rem;
+    }
+    .chat-header-icon {
+      width: 44px;
+      height: 44px;
+      background: rgba(255,255,255,0.18);
+      border-radius: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.35rem;
+    }
+    .chat-messages {
+      height: 400px;
+      overflow-y: auto;
+      padding: 2rem;
+      background: var(--bg-subtle);
+    }
+    .chat-messages::-webkit-scrollbar {
+      width: 8px;
+    }
+    .chat-messages::-webkit-scrollbar-track {
+      background: var(--bg);
+    }
+    .chat-messages::-webkit-scrollbar-thumb {
+      background: var(--border);
+      border-radius: 4px;
+    }
+    .chat-messages::-webkit-scrollbar-thumb:hover {
+      background: var(--text-muted);
+    }
+    .message {
+      display: flex;
+      margin-bottom: 1.5rem;
+      animation: slideIn 0.4s ease;
+    }
+    @keyframes slideIn {
+      from { opacity: 0; transform: translateY(15px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .message.user {
+      justify-content: flex-end;
+    }
+    .message-avatar {
+      width: 44px;
+      height: 44px;
+      border-radius: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.2rem;
+      flex-shrink: 0;
+      margin-right: 1rem;
+    }
+    .message.bot .message-avatar {
+      background: linear-gradient(135deg, var(--accent), var(--accent-light));
+      color: #fff;
+      box-shadow: 0 4px 12px rgba(6, 182, 212, 0.3);
+    }
+    .message-content {
+      max-width: 75%;
+    }
+    .message-bubble {
+      padding: 1.15rem 1.6rem;
+      border-radius: 20px;
+      font-size: 0.95rem;
+      line-height: 1.7;
+    }
+    .message.bot .message-bubble {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      color: var(--text);
+      border-bottom-left-radius: 6px;
+      box-shadow: var(--shadow);
+    }
+    .message.user .message-bubble {
+      background: linear-gradient(135deg, var(--accent), var(--accent-dark));
+      color: #fff;
+      border-bottom-right-radius: 6px;
+      box-shadow: 0 6px 16px rgba(6, 182, 212, 0.3);
+    }
+    .suggested-questions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+      padding: 1.25rem 2rem;
+      background: var(--bg);
+      border-top: 1px solid var(--border-light);
+    }
+    .suggested-btn {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      padding: 0.65rem 1.35rem;
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      cursor: pointer;
+      transition: all 0.2s ease;
+      font-weight: 500;
+    }
+    .suggested-btn:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+      background: rgba(6, 182, 212, 0.08);
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(6, 182, 212, 0.15);
+    }
+    .chat-input-area {
+      padding: 1.75rem 2rem;
+      background: var(--bg);
+      border-top: 1px solid var(--border-light);
+      display: flex;
+      gap: 1rem;
+    }
+    .chat-input {
       flex: 1;
-      border: 1.5px solid var(--line);
-      border-radius: 8px;
-      padding: 0.7rem 0.85rem;
+      border: 1.5px solid var(--border);
+      border-radius: 16px;
+      padding: 1.1rem 1.35rem;
       font: inherit;
+      font-size: 0.95rem;
+      transition: all 0.2s ease;
     }
-    .composer input:focus { outline: none; border-color: var(--accent); }
-    .chat-bar { display: flex; justify-content: space-between; align-items: center; margin-top: 0.6rem; }
-    .dots span {
-      display: inline-block; width: 7px; height: 7px; margin-right: 3px;
-      background: var(--accent); border-radius: 50%;
-      animation: bounce 0.6s infinite alternate;
+    .chat-input:focus { 
+      outline: none; 
+      border-color: var(--accent);
+      box-shadow: 0 0 0 4px rgba(6, 182, 212, 0.1);
     }
-    .dots span:nth-child(2) { animation-delay: 0.15s; }
-    .dots span:nth-child(3) { animation-delay: 0.3s; }
-    @keyframes bounce { to { transform: translateY(-4px); opacity: 0.4; } }
+    .chat-input::placeholder {
+      color: var(--text-light);
+    }
+    .send-btn {
+      background: linear-gradient(135deg, var(--accent), var(--accent-dark));
+      color: #fff;
+      border: 0;
+      border-radius: 16px;
+      padding: 1.1rem 1.85rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .send-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(6, 182, 212, 0.4);
+    }
+    .typing-indicator {
+      display: flex;
+      gap: 0.4rem;
+      padding: 0.6rem;
+    }
+    .typing-dot {
+      width: 8px;
+      height: 8px;
+      background: var(--text-muted);
+      border-radius: 50%;
+      animation: typing 1.4s infinite;
+    }
+    .typing-dot:nth-child(2) { animation-delay: 0.2s; }
+    .typing-dot:nth-child(3) { animation-delay: 0.4s; }
+    @keyframes typing {
+      0%, 60%, 100% { transform: translateY(0); }
+      30% { transform: translateY(-4px); }
+    }
+    .chat-footer {
+      padding: 1rem 2rem;
+      background: var(--bg-subtle);
+      border-top: 1px solid var(--border-light);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    
+    /* Footer */
     footer {
       text-align: center;
-      color: #8a99a3;
-      font-size: 0.82rem;
-      padding: 1.2rem 1rem 2rem;
+      color: var(--text-muted);
+      font-size: 0.85rem;
+      padding: 4rem 1.5rem;
+      border-top: 1px solid var(--border);
+      margin-top: 4rem;
+      background: var(--bg);
+    }
+    .footer-content {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+    .footer-brand {
+      font-weight: 700;
+      font-size: 1.1rem;
+      color: var(--primary);
+      margin-bottom: 0.75rem;
+    }
+    .footer-disclaimer {
+      margin-bottom: 1.25rem;
+      line-height: 1.7;
+      max-width: 600px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+    .footer-tech {
+      color: var(--text-light);
+      font-size: 0.8rem;
+    }
+    
+    /* Responsive */
+    @media (max-width: 768px) {
+      .nav-links {
+        display: none;
+      }
+      .hero-top {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 1.5rem;
+      }
+      .hero-logo-text h1 {
+        font-size: 1.75rem;
+      }
+      .hero-main h2 {
+        font-size: 2rem;
+      }
+      .upload-grid {
+        grid-template-columns: 1fr;
+      }
+      .results-grid {
+        grid-template-columns: 1fr;
+      }
+      .container {
+        padding: 2rem 1rem;
+      }
+      .upload-zone {
+        padding: 2.5rem 1.5rem;
+      }
+      .upload-zone-icon {
+        width: 64px;
+        height: 64px;
+        font-size: 1.75rem;
+      }
+      .message-content {
+        max-width: 85%;
+      }
     }
   </style>
 </head>
 <body>
-  <header>
-    <h1>SkinSight</h1>
-    <p>Educational skin lesion classification with deep learning</p>
-    <p>Built by Prerna</p>
+  <!-- Sticky Navigation -->
+  <nav class="nav-sticky">
+    <div class="nav-content">
+      <div class="nav-brand">
+        <div class="nav-brand-icon">S</div>
+        <span>SkinSight</span>
+      </div>
+      <div class="nav-links">
+        <a href="#overview" class="nav-link">Overview</a>
+        <a href="#analyze" class="nav-link">Analyze</a>
+        <a href="#results" class="nav-link">Results</a>
+        <a href="#insights" class="nav-link">Insights</a>
+        <a href="#assistant" class="nav-link">AI Assistant</a>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Hero Header -->
+  <header class="hero-header" id="overview">
+    <div class="hero-content">
+      <div class="hero-top">
+        <div class="hero-logo">
+          <div class="hero-logo-mark">S</div>
+          <div class="hero-logo-text">
+            <h1>SkinSight</h1>
+            <span>AI-Powered Skin Lesion Analysis</span>
+          </div>
+        </div>
+        <div class="hero-status">
+          <span class="hero-badge">Research Prototype</span>
+          <div class="hero-indicator">
+            <div class="hero-dot loading" id="status-dot"></div>
+            <span id="status-text">Checking...</span>
+          </div>
+        </div>
+      </div>
+      <div class="hero-main">
+        <h2>AI-Assisted Skin Lesion Analysis</h2>
+        <p>Upload a skin lesion image for educational analysis powered by deep learning. Our model provides predictions and comprehensive information about potential conditions — for research and education purposes only.</p>
+        <div class="hero-features">
+          <div class="hero-feature">
+            <div class="hero-feature-icon">🔬</div>
+            <span>Deep Learning Model</span>
+          </div>
+          <div class="hero-feature">
+            <div class="hero-feature-icon">🎯</div>
+            <span>Top-3 Predictions</span>
+          </div>
+          <div class="hero-feature">
+            <div class="hero-feature-icon">💬</div>
+            <span>AI Assistant</span>
+          </div>
+        </div>
+      </div>
+    </div>
   </header>
 
-  <main class="wrap">
-    <section class="panel">
-      <h2>Setup</h2>
-      <span class="chip">DenseNet121 (Focal Loss v2)</span>
-      <span id="server-state">Checking server…</span>
-      <p class="note">Classification runs on this machine. Disease cards and chat use OpenRouter from the server (the browser never sees the API key).</p>
+  <div class="container">
+    <!-- Status Panel -->
+    <div class="status-panel">
+      <div class="status-panel-content">
+        <div class="status-model">
+          <span class="status-model-chip"><span class="status-model-chip-dot"></span>DenseNet121</span>
+          <span id="server-state">Checking server…</span>
+        </div>
+        <p class="status-note">Classification runs locally. Educational cards and chat powered by OpenRouter — your browser never sees the API key.</p>
+      </div>
+    </div>
+
+    <!-- Upload Section -->
+    <section class="upload-card" id="analyze">
+      <div class="upload-grid">
+        <div class="upload-info">
+          <h3>Analyze Your Image</h3>
+          <p>Upload a clear photo of a skin lesion. Our AI model will analyze it and provide educational information about potential conditions.</p>
+          <div class="upload-steps">
+            <div class="upload-step">
+              <div class="upload-step-number">1</div>
+              <span>Upload or drag your image</span>
+            </div>
+            <div class="upload-step">
+              <div class="upload-step-number">2</div>
+              <span>AI analyzes the lesion</span>
+            </div>
+            <div class="upload-step">
+              <div class="upload-step-number">3</div>
+              <span>Review predictions and insights</span>
+            </div>
+          </div>
+        </div>
+        <div>
+          <div id="drop" class="upload-zone">
+            <div class="upload-zone-icon">📷</div>
+            <h4>Drop your image here</h4>
+            <p>or browse from your device</p>
+            <p class="formats">Supports JPG, PNG, and WEBP</p>
+            <input id="file" type="file" accept=".jpg,.jpeg,.png,.webp" hidden>
+          </div>
+          <div id="preview"><img id="preview-img" alt="Selected lesion"></div>
+          <div class="upload-actions">
+            <button id="run" class="btn-primary" disabled>Analyze Image</button>
+          </div>
+          <div id="alert" class="alert"></div>
+          <div id="busy" class="loading-state">
+            <div class="spinner"></div>
+            <p>Analyzing image with local classifier…</p>
+            <p class="status-note">First request may take longer while model weights load.</p>
+          </div>
+        </div>
+      </div>
     </section>
 
-    <section class="panel">
-      <h2>Upload and classify</h2>
-      <div id="drop" class="drop">
-        <p>Drop a lesion photo here, or click to choose a file</p>
-        <p class="small">JPG, PNG, or WEBP</p>
-        <input id="file" type="file" accept=".jpg,.jpeg,.png,.webp" hidden>
+    <!-- Results Section -->
+    <section id="results-section" id="results">
+      <div class="section-header">
+        <h3>Analysis Results</h3>
+        <p>AI-powered predictions based on your uploaded image</p>
       </div>
-      <div id="preview"><img id="preview-img" alt="Selected lesion"></div>
-      <div class="center">
-        <button id="run" disabled>Analyze image</button>
+      <div class="disclaimer-banner">
+        <div class="disclaimer-banner-icon">⚠️</div>
+        <p>Educational information only — SkinSight does not provide a medical diagnosis. Consult a qualified healthcare professional for medical concerns.</p>
       </div>
-      <div id="alert" class="alert"></div>
-      <div id="busy" class="busy">
-        <div class="spinner"></div>
-        <p>Running the local classifier…</p>
-        <p class="small">The first request after startup can take longer while weights finish loading.</p>
+      <div class="results-grid">
+        <div class="results-preview">
+          <img id="preview-result-img" alt="Analyzed lesion" style="display: none;">
+          <div id="preview-placeholder" style="text-align: center; padding: 2rem; color: var(--text-muted);">
+            <div style="font-size: 3rem; margin-bottom: 1rem;">📷</div>
+            <p>Analyzed image will appear here</p>
+          </div>
+          <p class="results-preview-label">Uploaded Image</p>
+        </div>
+        <div class="results-predictions">
+          <div class="results-header">
+            <h3>Top Predictions</h3>
+          </div>
+          <div id="scores"></div>
+        </div>
       </div>
-      <div id="scores"></div>
     </section>
 
-    <section id="cards-panel" class="panel">
-      <h2>Condition information</h2>
-      <div id="skeletons" class="grid">
-        <div class="skeleton"></div>
-        <div class="skeleton"></div>
-        <div class="skeleton"></div>
+    <!-- Educational Cards -->
+    <section id="cards-section" id="insights">
+      <div class="section-header">
+        <h3>Condition Information</h3>
+        <p>Detailed educational information about predicted conditions</p>
       </div>
-      <div id="cards" class="grid"></div>
+      <div id="skeletons" class="cards-grid">
+        <div class="skeleton-card"></div>
+        <div class="skeleton-card"></div>
+        <div class="skeleton-card"></div>
+      </div>
+      <div id="cards" class="cards-grid"></div>
     </section>
 
-    <section id="chat-panel" class="panel">
-      <h2>Questions about these results</h2>
-      <div id="thread" class="thread">
-        <div class="msg bot"><div class="bubble">Ask about the three predicted conditions. This is educational information only — it is not a diagnosis.</div></div>
+    <!-- Chat Section -->
+    <section id="chat-section" id="assistant">
+      <div class="section-header">
+        <h3>AI Assistant</h3>
+        <p>Ask questions about the predicted conditions</p>
       </div>
-      <div class="composer">
-        <input id="chat-text" type="text" placeholder="Ask a question…">
-        <button id="send" type="button">Send</button>
-      </div>
-      <div class="chat-bar">
-        <button id="reset" class="ghost" type="button">Clear conversation</button>
-        <span class="small">Answers are generated by an LLM through the local server</span>
+      <div class="chat-card">
+        <div class="chat-header">
+          <h3>
+            <div class="chat-header-icon">🤖</div>
+            SkinSight AI
+          </h3>
+        </div>
+        <div id="thread" class="chat-messages">
+          <div class="message bot">
+            <div class="message-avatar">🤖</div>
+            <div class="message-content">
+              <div class="message-bubble">Hello! I'm here to help you understand the predicted conditions. Ask me anything about the analysis results. Remember, this is educational information only — not a medical diagnosis.</div>
+            </div>
+          </div>
+        </div>
+        <div class="suggested-questions">
+          <button class="suggested-btn" onclick="suggestQuestion('What does this result mean?')">What does this result mean?</button>
+          <button class="suggested-btn" onclick="suggestQuestion('What symptoms should I watch for?')">What symptoms should I watch for?</button>
+          <button class="suggested-btn" onclick="suggestQuestion('When should I see a dermatologist?')">When should I see a dermatologist?</button>
+        </div>
+        <div class="chat-input-area">
+          <input id="chat-text" class="chat-input" type="text" placeholder="Type your question here…">
+          <button id="send" class="send-btn">Send</button>
+        </div>
+        <div class="chat-footer">
+          <button id="reset" class="btn-ghost">Clear conversation</button>
+          <span class="status-note">Responses generated by LLM via local server</span>
+        </div>
       </div>
     </section>
-  </main>
+  </div>
 
   <footer>
-    SkinSight by Prerna. This prototype is for education and research. It is not medical advice and must not replace a clinician.
+    <div class="footer-content">
+      <div class="footer-brand">SkinSight</div>
+      <p class="footer-disclaimer">This tool is for educational and research purposes only. It is not medical advice and must not replace professional clinical diagnosis. Always consult a qualified healthcare professional for medical concerns.</p>
+      <p class="footer-tech">Built with FastAPI, DenseNet121, and OpenRouter — A research prototype by Prerna</p>
+    </div>
   </footer>
 
   <script>
@@ -277,14 +1262,17 @@
       const fileInput = $("file");
       const preview = $("preview");
       const previewImg = $("preview-img");
+      const previewResultImg = $("preview-result-img");
+      const previewPlaceholder = $("preview-placeholder");
       const runBtn = $("run");
       const alertBox = $("alert");
       const busy = $("busy");
       const scores = $("scores");
-      const cardsPanel = $("cards-panel");
+      const resultsSection = $("results-section");
+      const cardsSection = $("cards-section");
       const skeletons = $("skeletons");
       const cards = $("cards");
-      const chatPanel = $("chat-panel");
+      const chatSection = $("chat-section");
       const thread = $("thread");
       const chatText = $("chat-text");
 
@@ -300,20 +1288,35 @@
         return String(detail);
       }
 
+      // Update header status
       fetch(`${apiRoot}/api/status`)
         .then((res) => res.json())
         .then((data) => {
           const el = $("server-state");
-          const llmNote = data.llm_configured ? "OpenRouter key found" : "OpenRouter key missing";
+          const statusDot = $("status-dot");
+          const statusText = $("status-text");
+          const llmNote = data.llm_configured ? "OpenRouter configured" : "OpenRouter missing";
           el.textContent = data.status === "ready"
-            ? `Server ready — ${data.model} · ${data.device} · ${llmNote}`
-            : `Server status: ${data.status}`;
-          el.style.color = data.status === "ready" ? "var(--ok)" : "var(--warn)";
+            ? `${data.model} · ${data.device} · ${llmNote}`
+            : `Status: ${data.status}`;
+          el.className = data.status === "ready" ? "ready" : "warn";
+          
+          if (data.status === "ready") {
+            statusDot.className = "hero-dot";
+            statusText.textContent = "Online";
+          } else {
+            statusDot.className = "hero-dot loading";
+            statusText.textContent = "Loading";
+          }
         })
         .catch(() => {
           const el = $("server-state");
-          el.textContent = "Server offline. From the project folder run: python run.py";
-          el.style.color = "var(--bad)";
+          const statusDot = $("status-dot");
+          const statusText = $("status-text");
+          el.textContent = "Server offline — run: python run.py";
+          el.className = "error";
+          statusDot.className = "hero-dot error";
+          statusText.textContent = "Offline";
         });
 
       drop.addEventListener("click", () => fileInput.click());
@@ -355,9 +1358,9 @@
         hideAlert();
         runBtn.disabled = true;
         busy.style.display = "block";
-        scores.style.display = "none";
-        cardsPanel.style.display = "none";
-        chatPanel.style.display = "none";
+        resultsSection.style.display = "none";
+        cardsSection.style.display = "none";
+        chatSection.style.display = "none";
 
         try {
           const form = new FormData();
@@ -369,9 +1372,15 @@
             throw new Error("The model returned no predictions.");
           }
           topThree = data.predictions.slice(0, 3);
+          
+          // Show image in results
+          previewResultImg.src = previewImg.src;
+          previewResultImg.style.display = "block";
+          previewPlaceholder.style.display = "none";
+          
           drawScores(topThree);
           busy.style.display = "none";
-          scores.style.display = "block";
+          resultsSection.style.display = "block";
           await loadCards(topThree);
           startChat();
         } catch (error) {
@@ -383,22 +1392,31 @@
       });
 
       function drawScores(preds) {
-        scores.innerHTML = "<h2>Top predictions</h2>";
+        scores.innerHTML = "";
         preds.forEach((item, index) => {
           const pct = (item.score * 100).toFixed(1);
+          const isTop = index === 0;
           scores.innerHTML += `
-            <div class="row">
-              <div class="row-top"><span>#${index + 1} ${item.label}</span><span class="pct">${pct}%</span></div>
-              <div class="track"><div class="fill" data-width="${pct}%"></div></div>
+            <div class="prediction-item ${isTop ? 'top' : ''}">
+              <div class="prediction-header">
+                <div class="prediction-label">
+                  <span class="rank-badge ${isTop ? 'top' : ''}">#${index + 1}</span>
+                  <span class="condition-name">${item.label}</span>
+                </div>
+                <span class="confidence">${pct}%</span>
+              </div>
+              <div class="confidence-bar">
+                <div class="confidence-fill" data-width="${pct}%"></div>
+              </div>
             </div>`;
         });
         requestAnimationFrame(() => {
-          scores.querySelectorAll(".fill").forEach((bar) => { bar.style.width = bar.dataset.width; });
+          scores.querySelectorAll(".confidence-fill").forEach((bar) => { bar.style.width = bar.dataset.width; });
         });
       }
 
       async function loadCards(preds) {
-        cardsPanel.style.display = "block";
+        cardsSection.style.display = "block";
         skeletons.style.display = "grid";
         cards.innerHTML = "";
         const settled = await Promise.allSettled(preds.map(fetchCard));
@@ -409,10 +1427,14 @@
           } else {
             const reason = result.reason?.message || "Could not load this card.";
             cards.insertAdjacentHTML("beforeend", `
-              <article class="card">
-                <div class="card-head"><h3>${preds[index].label}</h3></div>
-                <div class="card-body"><div class="fail">${reason}</div></div>
-              </article>`);
+              <div class="info-card">
+                <div class="info-card-header">
+                  <h4>${preds[index].label}</h4>
+                </div>
+                <div class="info-card-body">
+                  <div class="card-error">${reason}</div>
+                </div>
+              </div>`);
           }
         });
       }
@@ -428,32 +1450,57 @@
         return data;
       }
 
-      function pillList(values) {
-        return (values || []).map((item) => `<span class="pill">${item}</span>`).join("");
+      function tagList(values) {
+        if (!values || !Array.isArray(values)) return "";
+        return values.map((item) => {
+          // Handle both string values and object values with a 'msg' or similar property
+          const text = typeof item === "string" ? item : (item.msg || item.name || item.toString());
+          return `<span class="tag">${text}</span>`;
+        }).join("");
       }
 
       function cardHtml(info, pred, index) {
         const severity = info.severity || "Medium";
-        const sevClass = severity === "High" ? "high" : severity === "Low" ? "low" : "medium";
+        const sevClass = severity === "High" ? "badge-high" : severity === "Low" ? "badge-low" : "badge-medium";
         const pct = (pred.score * 100).toFixed(1);
-        const contagious = info.is_contagious ? '<span class="badge contagious">Contagious</span>' : "";
+        const contagious = info.is_contagious ? '<span class="badge badge-contagious">Contagious</span>' : "";
         return `
-          <article class="card">
-            <div class="card-head">
-              <h3>${info.disease || pred.label}</h3>
-              <span class="badge rank">#${index + 1} · ${pct}%</span>
-              <span class="badge ${sevClass}">${severity} severity</span>
-              ${contagious}
+          <div class="info-card">
+            <div class="info-card-header">
+              <h4>${info.disease || pred.label}</h4>
+              <div class="card-badges">
+                <span class="badge badge-rank">#${index + 1} · ${pct}%</span>
+                <span class="badge ${sevClass}">${severity} severity</span>
+                ${contagious}
+              </div>
             </div>
-            <div class="card-body">
-              <p>${info.overview || ""}</p>
-              <p><strong>Symptoms</strong></p><div class="pills">${pillList(info.symptoms)}</div>
-              <p><strong>Causes</strong></p><div class="pills">${pillList(info.causes)}</div>
-              <p><strong>Risk factors</strong></p><div class="pills">${pillList(info.risk_factors)}</div>
-              <p><strong>Precautions</strong></p><div class="pills">${pillList(info.precautions)}</div>
-              <div class="doctor"><strong>When to see a doctor:</strong> ${info.when_to_see_doctor || ""}</div>
+            <div class="info-card-body">
+              <div class="info-section">
+                <h5>Overview</h5>
+                <p>${info.overview || ""}</p>
+              </div>
+              <div class="info-section">
+                <h5>Symptoms</h5>
+                <div class="tag-list">${tagList(info.symptoms)}</div>
+              </div>
+              <div class="info-section">
+                <h5>Causes</h5>
+                <div class="tag-list">${tagList(info.causes)}</div>
+              </div>
+              <div class="info-section">
+                <h5>Risk Factors</h5>
+                <div class="tag-list">${tagList(info.risk_factors)}</div>
+              </div>
+              <div class="info-section">
+                <h5>Precautions</h5>
+                <div class="tag-list">${tagList(info.precautions)}</div>
+              </div>
+              <div class="doctor-alert">
+                <h5>When to See a Doctor</h5>
+                <p>${info.when_to_see_doctor || ""}</p>
+              </div>
             </div>
-          </article>`;
+          </div>`;
       }
 
       function systemPrompt() {
@@ -463,15 +1510,25 @@
 
       function startChat() {
         history = [];
-        chatPanel.style.display = "block";
-        thread.innerHTML = '<div class="msg bot"><div class="bubble">Ask about the three predicted conditions. This is educational information only — it is not a diagnosis.</div></div>';
+        chatSection.style.display = "block";
+        thread.innerHTML = `
+          <div class="message bot">
+            <div class="message-avatar">🤖</div>
+            <div class="message-content">
+              <div class="message-bubble">Hello! I'm here to help you understand the predicted conditions. Ask me anything about the analysis results. Remember, this is educational information only — not a medical diagnosis.</div>
+            </div>
+          </div>`;
       }
 
       function addMessage(role, text) {
-        const css = role === "user" ? "user" : "bot";
         const div = document.createElement("div");
-        div.className = `msg ${css}`;
-        div.innerHTML = `<div class="bubble">${String(text).replace(/\n/g, "<br>")}</div>`;
+        div.className = `message ${role}`;
+        const avatar = role === "user" ? "👤" : "🤖";
+        div.innerHTML = `
+          <div class="message-avatar">${avatar}</div>
+          <div class="message-content">
+            <div class="message-bubble">${String(text).replace(/\n/g, "<br>")}</div>
+          </div>`;
         thread.appendChild(div);
         thread.scrollTop = thread.scrollHeight;
       }
@@ -484,8 +1541,18 @@
         history.push({ role: "user", content: text });
         const typing = document.createElement("div");
         typing.id = "typing";
-        typing.className = "msg bot";
-        typing.innerHTML = '<div class="bubble dots"><span></span><span></span><span></span></div>';
+        typing.className = "message bot";
+        typing.innerHTML = `
+          <div class="message-avatar">🤖</div>
+          <div class="message-content">
+            <div class="message-bubble">
+              <div class="typing-indicator">
+                <div class="typing-dot"></div>
+                <div class="typing-dot"></div>
+                <div class="typing-dot"></div>
+              </div>
+            </div>
+          </div>`;
         thread.appendChild(typing);
 
         try {
@@ -508,6 +1575,12 @@
           addMessage("bot", "Connection error. Confirm that python run.py is still running.");
         }
       }
+
+      // Suggested questions
+      window.suggestQuestion = function(question) {
+        chatText.value = question;
+        chatText.focus();
+      };
 
       $("send").addEventListener("click", sendChat);
       chatText.addEventListener("keydown", (event) => {
