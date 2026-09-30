@@ -1,4 +1,4 @@
-# SkinSight
+# SkinSight-
 
 **AI-Powered Skin Lesion Classification & Educational Information Platform**
 
