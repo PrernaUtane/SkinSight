@@ -1,122 +1,130 @@
 # SkinSight
 
-**Author:** Prerna
+**AI-Powered Skin Lesion Classification & Educational Information Platform**
 
-SkinSight is an educational prototype that classifies a skin-lesion photograph with a local deep-learning model, then uses a language model to explain the top predictions.
+SkinSight is an educational AI prototype that analyzes skin-lesion images using a fine-tuned **DenseNet121 deep-learning model** and provides structured educational information about the predicted conditions using an LLM.
 
-This is **not** a diagnostic product. Predictions and generated text can be wrong. A qualified clinician must interpret any real medical concern.
+> **Disclaimer:** SkinSight is intended for educational and research purposes only. It is not a medical diagnostic system and should not be used as a substitute for professional medical advice.
 
-## What it does
+## Features
 
-1. Loads **DenseNet121 (Focal Loss v2)** from Hugging Face and runs inference on this machine.
-2. Accepts a JPG, PNG, or WEBP upload in the browser.
-3. Shows the **top three** class scores as percentage bars.
-4. Asks OpenRouter for a structured information card for each of those three labels.
-5. Offers a short follow-up chat grounded in those predictions.
-6. Includes a separate notebook that **evaluates six** published checkpoints on a public test set.
+* 🧠 **Deep-learning classification** using a fine-tuned DenseNet121 model
+* 📷 **Image upload** supporting JPG, PNG, and WEBP
+* 📊 **Top-3 predictions** with confidence scores
+* 🤖 **LLM-generated educational information** for predicted conditions
+* 💬 **Follow-up question chat** grounded in the classification results
+* 🔐 **Server-side API key handling** — the OpenRouter API key is never exposed to the browser
+* ⚡ **FastAPI backend** with a lightweight browser interface
+* 📈 **Model evaluation notebook** comparing six published checkpoints
 
-Classification never sends the image to OpenRouter. Only predicted names and your questions go to the language-model API.
+## How It Works
 
-## Layout
-
+```text
+User uploads skin-lesion image
+            │
+            ▼
+     FastAPI Backend
+            │
+            ▼
+   DenseNet121 Classifier
+            │
+            ▼
+     Top-3 Predictions
+            │
+            ├───────────────┐
+            ▼               ▼
+ Confidence Scores     Predicted Labels
+                            │
+                            ▼
+                       OpenRouter
+                            │
+                            ▼
+               Educational Information
+                            │
+                            ▼
+                       Web Interface
 ```
+
+### Important privacy design
+
+The uploaded image is processed by the local classifier and **is not sent to OpenRouter**.
+
+Only the predicted condition labels, confidence information, and user questions are sent to the language-model API.
+
+## Project Structure
+
+```text
 SkinSight/
-  app/                 FastAPI app, config, inference, LLM client
-  web/index.html       Browser UI (no build step)
-  notebooks/           Test-set evaluation of six models
-  results/             CSV and figures written by the notebook
-  samples/             Optional local demo images
-  run.py               Starts the web server
-  requirements.txt
-  .env.example
+│
+├── app/
+│   ├── config.py          # Application configuration
+│   ├── inference.py       # Model loading and image inference
+│   ├── llm_client.py      # OpenRouter integration
+│   ├── main.py            # FastAPI application and endpoints
+│   └── schemas.py         # API request/response schemas
+│
+├── web/
+│   └── index.html         # Browser interface
+│
+├── notebooks/
+│   └── evaluate_classifiers.ipynb
+│                           # Six-model evaluation
+│
+├── results/
+│   └── README.md          # Evaluation output information
+│
+├── samples/
+│   ├── demo_lesion.jpg
+│   └── README.md
+│
+├── run.py                 # Application entry point
+├── requirements.txt       # Python dependencies
+├── .env.example           # Environment configuration template
+├── PROJECT_EXPLANATION.md # Detailed project explanation
+└── INTERVIEW_PREPARATION.md
+                            # Interview preparation notes
 ```
 
-## Requirements
+## Tech Stack
 
-- Python 3.9 or newer
-- An OpenRouter API key for cards and chat (classification works without it)
-- Internet on first run so Hugging Face can download model weights (~28 MB for the default checkpoint)
-- A GPU is optional. CPU inference is slower but supported.
+| Category          | Technologies                        |
+| ----------------- | ----------------------------------- |
+| Backend           | FastAPI, Uvicorn                    |
+| Deep Learning     | PyTorch, DenseNet121                |
+| Model Hub         | Hugging Face                        |
+| Image Processing  | Pillow                              |
+| LLM               | OpenRouter                          |
+| Data & Evaluation | Hugging Face Datasets, scikit-learn |
+| Visualization     | Matplotlib, Seaborn                 |
+| Frontend          | HTML, CSS, JavaScript               |
+| Language          | Python                              |
 
-## Setup
+## Model
 
-```bash
-cd SkinSight
-python -m venv .venv
-```
+The live classifier uses:
 
-Windows:
+**DenseNet121 (Focal Loss v2)**
 
-```bash
-.venv\Scripts\activate
-pip install -r requirements.txt
-pip install torch torchvision --index-url https://download.pytorch.org/whl/cpu
-copy .env.example .env
-```
+Hugging Face model:
 
-The extra `torch` line is for CPU-only Windows. Skip it if you already have a working CUDA PyTorch install.
+`PrernaUtane/skin-lesion-densenet121`
 
-macOS / Linux:
+The model configuration provides the classification labels through `id2label`.
 
-```bash
-source .venv/bin/activate
-pip install -r requirements.txt
-cp .env.example .env
-```
+The application automatically uses:
 
-Edit `.env` and set `OPENROUTER_API_KEY`. Create a key at [openrouter.ai/keys](https://openrouter.ai/keys).
+* **CUDA GPU 0** when available
+* **CPU** otherwise
 
-If you skip the key, `/api/classify` still works. `/api/card` and `/api/chat` return a configuration error until the key is present.
+The model weights are downloaded from Hugging Face on the first run and subsequently reused through the local Hugging Face cache.
 
-## Start the application
+## Model Evaluation
 
-From the `SkinSight` folder (the directory that contains `run.py`):
+The repository includes an evaluation notebook comparing six published checkpoints on the test split of:
 
-```bash
-python run.py
-```
+`ahmed-ai/skin-lesions-classification-dataset`
 
-Open [http://localhost:8001](http://localhost:8001).
-
-The first start downloads the classifier weights and can take about a minute. Later starts reuse the local Hugging Face cache.
-
-## Using the web app
-
-1. Wait until the setup panel says the server is ready.
-2. Drop or select a lesion image.
-3. Click **Analyze image**.
-4. Read the top-three bars, then the three information cards.
-5. Use the chat box for follow-up questions.
-
-Supported uploads: JPEG, PNG, WEBP.
-
-## Classifier
-
-| Setting | Default |
-|---|---|
-| Architecture | DenseNet121 fine-tuned with focal loss (v2) |
-| Display name | DenseNet121 (Focal Loss v2) |
-| Preprocessing | That checkpoint's `AutoImageProcessor` (same path as the evaluation notebook) |
-| Device | CUDA GPU 0 if available, otherwise CPU |
-
-The Hub repository used at load time is set in `app/config.py` (`HF_MODEL_ID`). Override it in `.env` only if you intentionally switch checkpoints.
-
-The label list comes from the model config (`id2label`). On the evaluation dataset those names include melanoma, melanocytic nevi, basal cell carcinoma, monkeypox, and other lesion types — fourteen classes in total.
-
-## Language models
-
-Cards and chat call [OpenRouter](https://openrouter.ai/). The default primary model is a free DeepSeek chat model. If that model returns HTTP 404 or 429, SkinSight tries a list of other free models defined in `app/config.py`.
-
-The key is read from the environment on the server. It is not embedded in the HTML page.
-
-## Evaluation notebook
-
-`notebooks/evaluate_classifiers.ipynb` compares six Hugging Face checkpoints on:
-
-- Dataset: `ahmed-ai/skin-lesions-classification-dataset`
-- Split: `test` (3,674 images in the reference run)
-
-Models (same six as the reference evaluation):
+The six evaluated model variants are:
 
 1. DenseNet121 — Focal Loss v2
 2. DenseNet121
@@ -125,54 +133,179 @@ Models (same six as the reference evaluation):
 5. ResNet50
 6. MobileNetV2
 
-Checkpoint IDs used for loading are defined in `app/config.py`.
+The notebook can generate:
 
-After a completed run, `results/` should contain:
+```text
+results/
+├── model_comparison_summary.csv
+├── model_comparison_bar.png
+├── confusion_matrices_all.png
+└── per_class_f1_heatmap.png
+```
 
-- `model_comparison_summary.csv`
-- `model_comparison_bar.png`
-- `confusion_matrices_all.png`
-- `per_class_f1_heatmap.png`
+Evaluation should be reproduced by running the notebook rather than manually entering metrics.
 
-Run the notebook from Jupyter with the SkinSight virtual environment selected. A full six-model pass is slow on CPU. Do not type metrics into the CSV by hand; only keep numbers the notebook writes.
+## Installation
 
-A previous evaluation of this same dataset and these same checkpoints (stored in the original research notebook, not re-run here) ranked **DenseNet121-focal-loss-v2** highest on weighted F1. Treat that as historical context until you generate a fresh `results/` folder.
+### 1. Clone the repository
+
+```bash
+git clone https://github.com/PrernaUtane/SkinSight.git
+cd SkinSight
+```
+
+### 2. Create a virtual environment
+
+```bash
+python -m venv .venv
+```
+
+### 3. Activate the environment
+
+**Windows**
+
+```powershell
+.venv\Scripts\activate
+```
+
+**macOS / Linux**
+
+```bash
+source .venv/bin/activate
+```
+
+### 4. Install dependencies
+
+```bash
+pip install -r requirements.txt
+```
+
+For CPU-only Windows installations, if required:
+
+```bash
+pip install torch torchvision --index-url https://download.pytorch.org/whl/cpu
+```
+
+### 5. Configure environment variables
+
+Create `.env` from the example:
+
+**Windows**
+
+```powershell
+copy .env.example .env
+```
+
+**macOS / Linux**
+
+```bash
+cp .env.example .env
+```
+
+Add your OpenRouter API key:
+
+```env
+OPENROUTER_API_KEY=your_api_key_here
+```
+
+The API key is loaded by the backend and is not exposed to the frontend.
+
+## Running the Application
+
+Start the FastAPI server:
+
+```bash
+python run.py
+```
+
+Then open:
+
+```text
+http://localhost:8001
+```
+
+On startup, the application:
+
+1. Initializes the backend
+2. Loads the DenseNet121 classifier
+3. Detects the available device
+4. Checks whether an OpenRouter API key is configured
+5. Starts the web interface
+
+## Using SkinSight
+
+1. Open the application in your browser.
+2. Upload a skin-lesion image.
+3. Click **Analyze image**.
+4. View the top-three predictions and confidence scores.
+5. Read the educational information generated for the predictions.
+6. Ask follow-up questions using the chat interface.
+
+## API Endpoints
+
+| Method | Endpoint        | Purpose                                    |
+| ------ | --------------- | ------------------------------------------ |
+| `GET`  | `/`             | Web interface                              |
+| `GET`  | `/api/status`   | Application and model status               |
+| `POST` | `/api/classify` | Classify uploaded image                    |
+| `POST` | `/api/card`     | Generate educational condition information |
+| `POST` | `/api/chat`     | Ask follow-up questions                    |
+
+### Example classification request
+
+The `/api/classify` endpoint accepts a multipart form upload:
+
+```text
+image=<image file>
+```
+
+The response contains the ranked classification results.
 
 ## Configuration
 
-| Variable | Meaning | Default |
-|---|---|---|
-| `OPENROUTER_API_KEY` | Server-side LLM key | empty |
-| `SKINSIGHT_HOST` | Bind address | `0.0.0.0` |
-| `SKINSIGHT_PORT` | HTTP port | `8001` |
-| `HF_MODEL_ID` | Live classifier Hub path | DenseNet121 (Focal Loss v2), set in `app/config.py` |
-| `OPENROUTER_PRIMARY_MODEL` | First LLM to try | `deepseek/deepseek-v4-flash:free` |
-| `EVAL_DATASET_ID` | Notebook dataset | `ahmed-ai/skin-lesions-classification-dataset` |
-| `EVAL_SPLIT` | Notebook split | `test` |
-| `EVAL_BATCH_SIZE` | Notebook batch size | `32` |
-| `SKINSIGHT_RESULTS_DIR` | Output folder name | `results` |
-| `SKINSIGHT_SKIP_MODEL_LOAD` | Skip Hub download at startup (`1` for smoke tests only) | unset |
+Important environment variables include:
 
-Paths in `app/config.py` are resolved from the project root, so you can start the server from that folder without extra `PYTHONPATH` setup when using `python run.py`.
+| Variable                   | Purpose                            |
+| -------------------------- | ---------------------------------- |
+| `OPENROUTER_API_KEY`       | Server-side LLM API key            |
+| `HF_MODEL_ID`              | Hugging Face classifier repository |
+| `SKINSIGHT_HOST`           | Server bind address                |
+| `SKINSIGHT_PORT`           | Application port                   |
+| `OPENROUTER_PRIMARY_MODEL` | Primary OpenRouter model           |
+| `EVAL_DATASET_ID`          | Evaluation dataset                 |
+| `EVAL_SPLIT`               | Evaluation dataset split           |
+| `EVAL_BATCH_SIZE`          | Evaluation batch size              |
 
-## HTTP API
+The default live classifier is configured in `app/config.py`.
 
-| Method | Path | Purpose |
-|---|---|---|
-| `GET` | `/` | Web UI |
-| `GET` | `/api/status` | Model, device, whether an LLM key is set |
-| `POST` | `/api/classify` | Multipart field `image` → ranked scores |
-| `POST` | `/api/card` | JSON `{ "label", "confidence" }` → educational card |
-| `POST` | `/api/chat` | JSON `{ "system_prompt", "history" }` → reply |
+## Limitations
 
-## Stack
+SkinSight is a prototype and has important limitations:
 
-- FastAPI and Uvicorn
-- PyTorch and Hugging Face Transformers
-- Pillow
-- OpenRouter (chat completions)
-- Datasets, scikit-learn, matplotlib, and seaborn for evaluation
+* Image classification can produce incorrect predictions.
+* Confidence scores should not be interpreted as medical certainty.
+* LLM-generated information can be incomplete or incorrect.
+* The system has not been validated for clinical use.
+* Results should not be used to make medical decisions.
 
-## License and use
+For real medical concerns, consult a qualified healthcare professional.
 
-SkinSight is a project by **Prerna**. Use this repository for study and demonstration. Generated medical text is produced by an LLM and can be incomplete or incorrect. Do not rely on SkinSight for clinical decisions.
+## Project Documentation
+
+Additional documentation is included in the repository:
+
+* `PROJECT_EXPLANATION.md` — detailed technical explanation
+* `INTERVIEW_PREPARATION.md` — project-focused interview preparation
+* `notebooks/evaluate_classifiers.ipynb` — model evaluation workflow
+
+## Author
+
+**Prerna Utane**
+
+Artificial Intelligence & Data Science
+
+## License and Use
+
+SkinSight is an educational and research project created for learning and demonstration purposes.
+
+It must not be used as a clinical diagnostic tool.
